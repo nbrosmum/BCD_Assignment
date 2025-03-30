@@ -1,0 +1,13 @@
+{
+  "network": "sepolia",
+  "timestamp": "2025-03-30T22:14:33.172Z",
+  "contracts": {
+    "IdentityVerification": "0x36A79A955dAd7Fbb4A7De39c8CC52f46Dff5A42c",
+    "Marketplace": "0xaDFf14388FDB2C79C55a4f8Cef7aD6092364216A"
+  },
+  "accounts": {
+    "deployer": "0x985397cC85A383ba5ef3199750B223069D7E5795",
+    "buyer": "0x6654EDd8C8162ff4a429f1422Ce055D20C2E8b8B",
+    "seller": "0x332f8F2B9896dE6Bdd7BF9D07D25AE088340BE98"
+  }
+}

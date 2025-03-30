@@ -1,34 +1,61 @@
 require("dotenv").config();
 const { ethers } = require("hardhat");
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
+    // 1. Initialize Signers
     const [deployer, buyer, seller] = await ethers.getSigners();
+    
+    console.log("\n=== Deployment Initialized ===");
+    console.log(`Deployer: ${deployer.address}`);
+    console.log(`Buyer:    ${buyer.address}`);
+    console.log(`Seller:   ${seller.address}\n`);
 
-    console.log(`Deploying contracts with the account: ${deployer.address}`);
-    console.log(`Buyer Address: ${buyer.address}`);
-    console.log(`Seller Address: ${seller.address}`);
-
-    // Deploy IdentityVerification Contract
+    // 2. Deploy IdentityVerification
+    console.log("Deploying IdentityVerification...");
     const IdentityVerification = await ethers.getContractFactory("IdentityVerification");
     const identityVerification = await IdentityVerification.deploy();
     await identityVerification.waitForDeployment();
-    console.log(`IdentityVerification deployed to: ${await identityVerification.getAddress()}`);
+    const identityAddress = await identityVerification.getAddress();
+    console.log(`IdentityVerification deployed to: ${identityAddress}`);
 
-    // Deploy Marketplace Contract
+    // 3. Deploy Marketplace
+    console.log("\nDeploying Marketplace...");
     const Marketplace = await ethers.getContractFactory("Marketplace");
-    const marketplace = await Marketplace.deploy(await identityVerification.getAddress());
+    const marketplace = await Marketplace.deploy(identityAddress);
     await marketplace.waitForDeployment();
-    console.log(`Marketplace deployed to: ${await marketplace.getAddress()}`);
+    const marketplaceAddress = await marketplace.getAddress();
+    console.log(`Marketplace deployed to: ${marketplaceAddress}`);
 
-    console.log("Deployment Completed");
+    // 4. Save Deployment Data
+    const deploymentData = {
+        network: (await ethers.provider.getNetwork()).name,
+        timestamp: new Date().toISOString(),
+        contracts: {
+            IdentityVerification: identityAddress,
+            Marketplace: marketplaceAddress
+        },
+        accounts: {
+            deployer: deployer.address,
+            buyer: buyer.address,
+            seller: seller.address
+        }
+    };
+
+    const filePath = path.join(__dirname, "deployment-data.json");
+    fs.writeFileSync(filePath, JSON.stringify(deploymentData, null, 2));
+    console.log("\nDeployment data saved to:", filePath);
+
+    // 5. Verification Instructions
+    console.log("\n=== Verification Commands ===");
+    console.log(`npx hardhat verify --network ${deploymentData.network} ${identityAddress}`);
+    console.log(`npx hardhat verify --network ${deploymentData.network} ${marketplaceAddress} "${identityAddress}"`);
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-});
-
-
-
-    
-  
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error("\n Deployment Failed:", error);
+        process.exit(1);
+    });
