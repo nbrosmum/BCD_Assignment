@@ -10,7 +10,8 @@ module.exports = {
       accounts: [
         process.env.PRIVATE_KEY,
         process.env.BUYER_PRIVATE_KEY,  // Buyer
-        process.env.SELLER_PRIVATE_KEY  // Seller
+        process.env.SELLER_PRIVATE_KEY, // Seller
+        process.env.OTHER_PRIVATE_KEY,  // other
       ],
     },
   },

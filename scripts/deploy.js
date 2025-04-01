@@ -5,12 +5,13 @@ const path = require("path");
 
 async function main() {
     // 1. Initialize Signers
-    const [deployer, buyer, seller] = await ethers.getSigners();
+    const [deployer, buyer, seller,other] = await ethers.getSigners();
     
     console.log("\n=== Deployment Initialized ===");
     console.log(`Deployer: ${deployer.address}`);
     console.log(`Buyer:    ${buyer.address}`);
-    console.log(`Seller:   ${seller.address}\n`);
+    console.log(`Seller:   ${seller.address}`);
+    console.log(`Other:    ${other.address}\n`);
 
     // 2. Deploy IdentityVerification
     console.log("Deploying IdentityVerification...");
@@ -39,7 +40,8 @@ async function main() {
         accounts: {
             deployer: deployer.address,
             buyer: buyer.address,
-            seller: seller.address
+            seller: seller.address,
+            other: other.address
         }
     };
 

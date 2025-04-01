@@ -1,13 +1,14 @@
 {
   "network": "sepolia",
-  "timestamp": "2025-03-30T22:14:33.172Z",
+  "timestamp": "2025-04-01T15:39:41.808Z",
   "contracts": {
-    "IdentityVerification": "0x36A79A955dAd7Fbb4A7De39c8CC52f46Dff5A42c",
-    "Marketplace": "0xaDFf14388FDB2C79C55a4f8Cef7aD6092364216A"
+    "IdentityVerification": "0x662ea205588867dDd9B827eE1520E359D56CC5b0",
+    "Marketplace": "0x8b8550939A5E91456b28c854c703311BaD98353B"
   },
   "accounts": {
     "deployer": "0x985397cC85A383ba5ef3199750B223069D7E5795",
     "buyer": "0x6654EDd8C8162ff4a429f1422Ce055D20C2E8b8B",
-    "seller": "0x332f8F2B9896dE6Bdd7BF9D07D25AE088340BE98"
+    "seller": "0x332f8F2B9896dE6Bdd7BF9D07D25AE088340BE98",
+    "other": "0xfBCeD15478A3bF8f4e026019c3b2e3267fC2548a"
   }
 }
