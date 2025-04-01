@@ -6,6 +6,7 @@ module.exports = {
   networks: {
     sepolia: {
       url: process.env.SEPOLIA_URL,
+      chainId: 11155111,
       accounts: [
         process.env.PRIVATE_KEY,
         process.env.BUYER_PRIVATE_KEY,  // Buyer
