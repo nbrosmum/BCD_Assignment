@@ -16,11 +16,11 @@ contract Marketplace {
 
     Product[] public products;
     mapping(uint256 => address) public productBuyers;
+    mapping(address => uint256) public sellerBalances;
 
     event ProductListed(uint256 indexed productId, string name, uint256 price, address seller);
     event ProductPurchased(uint256 indexed productId, address buyer, uint256 price);
     event ProductRemoved(uint256 indexed productId);
-    event FundsWithdrawn(address recipient, uint256 amount);
 
     modifier onlyVerifiedSeller() {
         require(identityContract.isUserVerified(msg.sender), "Unverified seller");
@@ -77,24 +77,20 @@ contract Marketplace {
 
         product.sold = true;
         productBuyers[_productId] = msg.sender;
-        
-        (bool success, ) = product.seller.call{value: msg.value}("");
-        require(success, "Payment failed");
-        
+        sellerBalances[product.seller] += msg.value;
+
         emit ProductPurchased(_productId, msg.sender, product.price);
     }
 
     function removeProduct(uint256 _productId) external validProductId(_productId) {
         Product storage product = products[_productId];
-        
-        require(
-            msg.sender == product.seller || 
-            msg.sender == address(identityContract),
-            "Not authorized"
-        );
+        require(msg.sender == product.seller, "Not authorized");
         require(!product.sold, "Cannot remove sold product");
+
+        // Swap and pop to prevent empty slots in array
+        products[_productId] = products[products.length - 1];
+        products.pop();
         
-        delete products[_productId];
         emit ProductRemoved(_productId);
     }
 
@@ -104,17 +100,17 @@ contract Marketplace {
     }
 
     function getActiveProducts() external view returns (Product[] memory) {
-        uint256 activeCount = 0;
+        uint256 count;
         for (uint256 i = 0; i < products.length; i++) {
-            if (!products[i].sold) activeCount++;
+            if (!products[i].sold) count++;
         }
-        
-        Product[] memory activeProducts = new Product[](activeCount);
-        uint256 index = 0;
+
+        Product[] memory activeProducts = new Product[](count);
+        uint256 j = 0;
         for (uint256 i = 0; i < products.length; i++) {
             if (!products[i].sold) {
-                activeProducts[index] = products[i];
-                index++;
+                activeProducts[j] = products[i];
+                j++;
             }
         }
         return activeProducts;

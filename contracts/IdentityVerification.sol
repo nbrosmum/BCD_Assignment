@@ -20,7 +20,6 @@ contract IdentityVerification {
 
     event UserRegistered(address indexed user, string name, UserRole role);
     event UserVerified(address indexed user);
-    event AdminTransferred(address indexed previousAdmin, address indexed newAdmin);
 
     modifier onlyAdmin() {
         require(msg.sender == admin, "Only admin can perform this action");
@@ -67,14 +66,6 @@ contract IdentityVerification {
         users[_user].isVerified = true;
         users[_user].verificationDate = block.timestamp;
         emit UserVerified(_user);
-    }
-
-    function transferAdmin(address _newAdmin) public onlyAdmin {
-        require(_newAdmin != address(0), "Invalid address");
-        require(_newAdmin != admin, "Already admin");
-        
-        emit AdminTransferred(admin, _newAdmin);
-        admin = _newAdmin;
     }
 
     // View functions
