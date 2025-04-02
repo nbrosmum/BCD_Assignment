@@ -12,7 +12,10 @@ module.exports = {
         process.env.BUYER_PRIVATE_KEY,  // Buyer
         process.env.SELLER_PRIVATE_KEY, // Seller
         process.env.OTHER_PRIVATE_KEY,  // other
-      ],
+      ].filter(Boolean), // Filter out undefined values,
     },
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY, // API key for contract verification
   },
 };

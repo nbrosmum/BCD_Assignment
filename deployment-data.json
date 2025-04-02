@@ -1,9 +1,9 @@
 {
   "network": "sepolia",
-  "timestamp": "2025-04-01T15:39:41.808Z",
+  "timestamp": "2025-04-02T00:21:48.731Z",
   "contracts": {
-    "IdentityVerification": "0x662ea205588867dDd9B827eE1520E359D56CC5b0",
-    "Marketplace": "0x8b8550939A5E91456b28c854c703311BaD98353B"
+    "IdentityVerification": "0x6C8EC096bC0565b04da2c4e974268d9B32e325aD",
+    "Marketplace": "0xd54846467C82414e0dC3213A94dF3e8dB42929fD"
   },
   "accounts": {
     "deployer": "0x985397cC85A383ba5ef3199750B223069D7E5795",

@@ -5,7 +5,7 @@ const path = require("path");
 
 async function main() {
     // 1. Initialize Signers
-    const [deployer, buyer, seller,other] = await ethers.getSigners();
+    const [deployer, buyer, seller, other] = await ethers.getSigners();
     
     console.log("\n=== Deployment Initialized ===");
     console.log(`Deployer: ${deployer.address}`);
@@ -29,7 +29,7 @@ async function main() {
     const marketplaceAddress = await marketplace.getAddress();
     console.log(`Marketplace deployed to: ${marketplaceAddress}`);
 
-    // 4. Save Deployment Data
+    // 4. Save Deployment Data in the Root Directory
     const deploymentData = {
         network: (await ethers.provider.getNetwork()).name,
         timestamp: new Date().toISOString(),
@@ -45,9 +45,10 @@ async function main() {
         }
     };
 
-    const filePath = path.join(__dirname, "deployment-data.json");
+    // Save to the root directory
+    const filePath = path.join(__dirname, "..", "deployment-data.json"); // Moves one level up
     fs.writeFileSync(filePath, JSON.stringify(deploymentData, null, 2));
-    console.log("\nDeployment data saved to:", filePath);
+    console.log("\n✅ Deployment data saved to:", filePath);
 
     // 5. Verification Instructions
     console.log("\n=== Verification Commands ===");
@@ -58,6 +59,6 @@ async function main() {
 main()
     .then(() => process.exit(0))
     .catch((error) => {
-        console.error("\n Deployment Failed:", error);
+        console.error("\n❌ Deployment Failed:", error);
         process.exit(1);
     });
