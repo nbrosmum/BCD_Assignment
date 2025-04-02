@@ -4,115 +4,46 @@ pragma solidity ^0.8.28;
 import "./IdentityVerification.sol";
 
 contract Marketplace {
-    IdentityVerification public immutable identityContract;
-    
     struct Product {
+        uint id;
         string name;
-        uint256 price;
-        address seller;
-        bool sold;
-        uint256 listingTimestamp;
+        uint price;
+        address payable seller;
+        bool isSold;
     }
 
-    Product[] public products;
-    mapping(uint256 => address) public productBuyers;
-    mapping(address => uint256) public sellerBalances;
+    IdentityVerification public identityVerification;
+    mapping(uint => Product) public products;
+    uint public productCount;
 
-    event ProductListed(uint256 indexed productId, string name, uint256 price, address seller);
-    event ProductPurchased(uint256 indexed productId, address buyer, uint256 price);
-    event ProductRemoved(uint256 indexed productId);
+    event ProductListed(uint productId, string name, uint price, address seller);
+    event ProductPurchased(uint productId, address buyer);
 
-    modifier onlyVerifiedSeller() {
-        require(identityContract.isUserVerified(msg.sender), "Unverified seller");
-        require(
-            identityContract.getUserRole(msg.sender) == IdentityVerification.UserRole.Seller, 
-            "Not a seller"
-        );
+    modifier onlyVerifiedUser() {
+        require(identityVerification.isUserVerified(msg.sender), "User must be verified to participate");
         _;
     }
 
-    modifier onlyVerifiedBuyer() {
-        require(identityContract.isUserVerified(msg.sender), "Unverified buyer");
-        require(
-            identityContract.getUserRole(msg.sender) == IdentityVerification.UserRole.Buyer,
-            "Not a buyer"
-        );
-        _;
+    constructor(address _identityVerificationAddress) {
+        identityVerification = IdentityVerification(_identityVerificationAddress);
     }
 
-    modifier validProductId(uint256 _productId) {
-        require(_productId < products.length, "Invalid product ID");
-        _;
+    function listProduct(string memory _name, uint _price) public onlyVerifiedUser {
+        require(_price > 0, "Price must be greater than zero");
+        productCount++;
+        products[productCount] = Product(productCount, _name, _price, payable(msg.sender), false);
+        emit ProductListed(productCount, _name, _price, msg.sender);
     }
 
-    constructor(address _identityContract) {
-        require(_identityContract != address(0), "Invalid identity contract");
-        identityContract = IdentityVerification(_identityContract);
-    }
-
-    function listProduct(string memory _name, uint256 _price) external onlyVerifiedSeller {
-        require(bytes(_name).length > 0, "Product name required");
-        require(_price > 0, "Price must be > 0");
-        
-        products.push(Product({
-            name: _name,
-            price: _price,
-            seller: msg.sender,
-            sold: false,
-            listingTimestamp: block.timestamp
-        }));
-        
-        emit ProductListed(products.length - 1, _name, _price, msg.sender);
-    }
-
-    function buyProduct(uint256 _productId) external payable 
-        onlyVerifiedBuyer 
-        validProductId(_productId) 
-    {
+    function purchaseProduct(uint _productId) public payable onlyVerifiedUser {
         Product storage product = products[_productId];
-        
-        require(!product.sold, "Product already sold");
+        require(product.id > 0 && product.id <= productCount, "Product does not exist");
+        require(!product.isSold, "Product already sold");
         require(msg.value == product.price, "Incorrect payment amount");
-        require(msg.sender != product.seller, "Sellers cannot buy their own products");
-
-        product.sold = true;
-        productBuyers[_productId] = msg.sender;
-        sellerBalances[product.seller] += msg.value;
-
-        emit ProductPurchased(_productId, msg.sender, product.price);
-    }
-
-    function removeProduct(uint256 _productId) external validProductId(_productId) {
-        Product storage product = products[_productId];
-        require(msg.sender == product.seller, "Not authorized");
-        require(!product.sold, "Cannot remove sold product");
-
-        // Swap and pop to prevent empty slots in array
-        products[_productId] = products[products.length - 1];
-        products.pop();
+        require(msg.sender != product.seller, "Seller cannot buy own product");
         
-        emit ProductRemoved(_productId);
-    }
-
-    // View functions
-    function getProductCount() external view returns (uint256) {
-        return products.length;
-    }
-
-    function getActiveProducts() external view returns (Product[] memory) {
-        uint256 count;
-        for (uint256 i = 0; i < products.length; i++) {
-            if (!products[i].sold) count++;
-        }
-
-        Product[] memory activeProducts = new Product[](count);
-        uint256 j = 0;
-        for (uint256 i = 0; i < products.length; i++) {
-            if (!products[i].sold) {
-                activeProducts[j] = products[i];
-                j++;
-            }
-        }
-        return activeProducts;
+        product.seller.transfer(msg.value);
+        product.isSold = true;
+        emit ProductPurchased(_productId, msg.sender);
     }
 }

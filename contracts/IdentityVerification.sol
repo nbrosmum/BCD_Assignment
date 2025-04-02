@@ -2,32 +2,23 @@
 pragma solidity ^0.8.28;
 
 contract IdentityVerification {
-    address public admin;
-    
-    enum UserRole { None, Buyer, Seller }
-    
     struct User {
         string name;
-        string idNumber;
+        string governmentId;
+        string phoneNumber;
+        string ssmNumber;
         bool isVerified;
-        UserRole role;
-        uint256 registrationDate;
-        uint256 verificationDate;
     }
 
     mapping(address => User) public users;
-    mapping(string => bool) private isIdNumberUsed;
+    mapping(string => bool) private usedGovernmentIds;
+    address public admin;
 
-    event UserRegistered(address indexed user, string name, UserRole role);
-    event UserVerified(address indexed user);
+    event UserRegistered(address user);
+    event UserVerified(address user);
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, "Only admin can perform this action");
-        _;
-    }
-
-    modifier onlyUnverifiedUsers() {
-        require(!users[msg.sender].isVerified, "User already verified");
+        require(msg.sender == admin, "Only admin can verify users");
         _;
     }
 
@@ -35,64 +26,22 @@ contract IdentityVerification {
         admin = msg.sender;
     }
 
-    function register(
-        string memory _name, 
-        string memory _idNumber, 
-        UserRole _role
-    ) public onlyUnverifiedUsers {
-        require(bytes(_name).length > 0, "Name cannot be empty");
-        require(bytes(_name).length <= 100, "Name too long");
-        require(bytes(_idNumber).length > 0, "ID number cannot be empty");
-        require(!isIdNumberUsed[_idNumber], "ID number already registered");
-        require(_role == UserRole.Buyer || _role == UserRole.Seller, "Invalid role");
-
-        users[msg.sender] = User({
-            name: _name,
-            idNumber: _idNumber,
-            isVerified: false,
-            role: _role,
-            registrationDate: block.timestamp,
-            verificationDate: 0
-        });
+    function registerUser(string memory _name, string memory _governmentId, string memory _phoneNumber, string memory _ssmNumber) public {
+        require(!users[msg.sender].isVerified, "User already registered");
+        require(!usedGovernmentIds[_governmentId], "Government ID already used");
         
-        isIdNumberUsed[_idNumber] = true;
-        emit UserRegistered(msg.sender, _name, _role);
+        users[msg.sender] = User(_name, _governmentId, _phoneNumber, _ssmNumber, false);
+        usedGovernmentIds[_governmentId] = true;
+        emit UserRegistered(msg.sender);
     }
 
     function verifyUser(address _user) public onlyAdmin {
-        require(bytes(users[_user].name).length > 0, "User not found");
         require(!users[_user].isVerified, "User already verified");
-        
         users[_user].isVerified = true;
-        users[_user].verificationDate = block.timestamp;
         emit UserVerified(_user);
-    }
-
-    // View functions
-    function getUserDetails(address _user) public view returns (
-        string memory,
-        string memory,
-        bool,
-        UserRole,
-        uint256,
-        uint256
-    ) {
-        User memory user = users[_user];
-        return (
-            user.name,
-            user.idNumber,
-            user.isVerified,
-            user.role,
-            user.registrationDate,
-            user.verificationDate
-        );
     }
 
     function isUserVerified(address _user) public view returns (bool) {
         return users[_user].isVerified;
-    }
-
-    function getUserRole(address _user) public view returns (UserRole) {
-        return users[_user].role;
     }
 }
